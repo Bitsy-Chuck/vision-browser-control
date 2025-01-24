@@ -162,7 +162,7 @@ export async function setupChatChain(messageHistories) {
 
     const model = new ChatOpenAI({
         model: "gpt-4o",
-        temperature: 0.7,
+        temperature: 1,
         // max_tokens: 1000,
     });
 
