@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import {setupChatChain} from '../chatChain.js';
+import {setupChatChain} from './chatChain.js';
 import {processActions} from '../browserActions.js';
 import {input} from '../utils.js';
 

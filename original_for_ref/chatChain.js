@@ -3,7 +3,7 @@ import {RunnableSequence, RunnableWithMessageHistory} from "@langchain/core/runn
 import {ChatPromptTemplate} from "@langchain/core/prompts";
 import {InMemoryChatMessageHistory} from "@langchain/core/chat_history";
 
-import {logger} from "./utils.js";
+import {logger} from "../utils.js";
 
 // import { logger } from './utils.js';
 
