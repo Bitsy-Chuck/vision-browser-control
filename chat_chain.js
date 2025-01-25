@@ -1,5 +1,6 @@
 import {ChatOpenAI} from "@langchain/openai";
 // import {ChatOllama} from "@langchain/ollama";
+// import {AzureOpenAI} from "@langchain/openai";
 import {RunnableSequence, RunnableWithMessageHistory} from "@langchain/core/runnables";
 import {ChatPromptTemplate} from "@langchain/core/prompts";
 import {InMemoryChatMessageHistory} from "@langchain/core/chat_history";
@@ -230,6 +231,11 @@ export async function setupChatChain(messageHistories) {
             model: "gpt-4o",
             temperature: 1
         });
+
+        // const model = new AzureOpenAI({
+        //     // model: "gpt-4o",
+        //     temperature: 1
+        // });
 
         // const model = new ChatOllama({
         //     // model: "gpt-4o",

@@ -117,10 +117,6 @@ let sessionMetadata = {
 };
 
 (async () => {
-    console.log("###########################################");
-    console.log("# GPT4V-Browsing by Unconventional Coding #");
-    console.log("###########################################\n");
-
     const browser = await puppeteer.launch({
         headless: false,
         // executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google\ Chrome',
