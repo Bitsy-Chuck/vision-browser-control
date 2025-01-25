@@ -4,15 +4,13 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {setupChatChain} from './chat_chain.js';
 import {loadWebsiteAndTakeScreenshot, processActions} from './browserActions.js';
 import {input, logger} from './utils.js';
+import fs from "fs";
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
 
 const messageHistories = {};
-let static_history = {
-    "username": "singhtejasv9@gmail.com",
-    "password": "pass",
-};
+let static_history = JSON.parse(fs.readFileSync('static_content.json', 'utf8'));
 
 async function analyzeScreenshot(withMessageHistory, config, screenshot, url, elementMap, isFirstAnalysis) {
     const content = isFirstAnalysis ?
