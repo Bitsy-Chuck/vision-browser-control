@@ -2,12 +2,10 @@ import {ChatOpenAI} from "@langchain/openai";
 import {RunnableSequence, RunnableWithMessageHistory} from "@langchain/core/runnables";
 import {ChatPromptTemplate} from "@langchain/core/prompts";
 import {InMemoryChatMessageHistory} from "@langchain/core/chat_history";
-
 import {logger} from "./utils.js";
 
-// import { logger } from './utils.js';
-
-const system_prompt = `You are a sophisticated website crawler with advanced analytical capabilities. You will be given instructions on what to do by browsing.
+// Prompt templates - Replace with actual prompt content from secure source
+const SYSTEM_PROMPT = `You are a sophisticated website crawler with advanced analytical capabilities. You will be given instructions on what to do by browsing.
  You are connected to a web browser and will be provided with either a screenshot of the website you are on or a detailed textual context of the current state.
   The interactable elements on the website are highlighted with a red outline and light red background.
    Always base your understanding on the provided information. Don't make assumptions about elements or content not explicitly mentioned.
@@ -56,7 +54,7 @@ You will receive context in the following elaborate format:
 Your task is to:
 1. Thoroughly analyze the current state using the detailed information provided.
 2. Understand the main goal and how it relates to the current screen's objective.
-3. Evaluate the progress made towards the main goal and identify any blockers.
+3. Evaluate the progress made towards the main goal and identify any blockers. Use previous actions to determine what was done last
 4. Determine the most appropriate action(s) to take next, considering:
    a. The current screen's goal
    b. Available actions
@@ -130,52 +128,7 @@ THIS IS THE STATIC CONTEXT. consider this your knowledge base
 === IGNORE THIS LINE. AFTER THIS YOU WILL RECIEVE THE INPUTS ===
 CONTEXT: {context}
 `;
-
-/*
-- Waiting: {{"action_type": "wait", "value": "5000"}} (wait for 5000 milliseconds)
-- Scrolling: {{"action_type": "scroll", "value": "down" | "up" | "bottom" | "top"}}
-
-| "wait" | "scroll",
- */
-const printIntermediateStage = (input) => {
-    logger.info(`Intermediate stage - Input to the model: ${JSON.stringify(input, null, 2)}`);
-    return JSON.stringify(input);
-};
-
-function cleanMessageHistory(messageHistory) {
-    return messageHistory.map(message => {
-        if (message.content && typeof message.content === 'object' && message.content.content) {
-            // Remove image data from previous messages
-            message.content.content = message.content.content.filter(item => item.type !== 'image_url');
-        }
-        return message;
-    });
-}
-
-export async function setupChatChain(messageHistories) {
-    const promptTemplate = ChatPromptTemplate.fromMessages([
-        ["system", system_prompt],
-        ["placeholder", "{chat_history}"],
-        ["human", "{input}"],
-    ]);
-    // const model_claude = new ChatAnthropic({});
-
-    const model = new ChatOpenAI({
-        model: "gpt-4o",
-        temperature: 1,
-        // max_tokens: 1000,
-    });
-
-    // const parser = new JsonOutputParser<ActionResponse>();
-
-    const chain = RunnableSequence.from([
-        promptTemplate,
-        printIntermediateStage,
-        model,
-        // parser
-    ]);
-
-    const val = `
+const INPUT_VALUE_PROMPT = `
     Generate an appropriate input value for the form field '{fieldName}'. 
 
     Context: {context}
@@ -205,42 +158,134 @@ export async function setupChatChain(messageHistories) {
     2024-08-15
     Software Engineer
     `;
-    const inputValueChain = RunnableSequence.from([
-        ChatPromptTemplate.fromMessages([
-            ["human", val],
-        ]),
-        printIntermediateStage,
-        model,
-    ]);
 
+// Intermediate logging with error handling
+const logIntermediateStage = (input) => {
+    try {
+        const stringifiedInput = JSON.stringify(input, null, 2);
+        logger.info(`Intermediate stage - Input to model: ${stringifiedInput}`);
+        return stringifiedInput;
+    } catch (error) {
+        logger.error('Error in intermediate logging:', error);
+        throw new Error('Failed to process intermediate stage');
+    }
+};
 
-    const withMessageHistory = new RunnableWithMessageHistory({
-        runnable: chain,
-        getMessageHistory: async (sessionId) => {
-            if (!messageHistories[sessionId]) {
-                messageHistories[sessionId] = new InMemoryChatMessageHistory();
+// Clean message history by removing image data
+const __cleanMessageHistory = (messages) => {
+    try {
+        return messages.map(message => {
+            if (message?.content) {
+                return {
+                    ...message,
+                    content: {
+                        ...message.content,
+                        content: message.content.content.filter(item => item.type !== 'image_url')
+                    }
+                };
             }
-            let history = messageHistories[sessionId];
-            history.messages = cleanMessageHistory(history.messages);
-            return history;
-        },
-        inputMessagesKey: "input",
-        historyMessagesKey: "chat_history",
-    });
+            return message;
+        });
+    } catch (error) {
+        logger.error('Error cleaning message history:', error);
+        throw new Error('Failed to clean message history');
+    }
+};
 
-    return {withMessageHistory, inputValueChain};
+const cleanMessageHistory = (messages) => {
+    try {
+        messages = messages || [];
+        messages = []
+        messages = messages.filter(msg => msg.constructor.name !== 'HumanMessage');
+        return messages;
+        // return messages.map(message => {
+        //     if (message?.content) {
+        //         return {
+        //             ...message,
+        //             content: {
+        //                 ...message.content,
+        //                 content: message.content.content.filter(item => item.type !== 'image_url')
+        //             }
+        //         };
+        //     }
+        //     return message;
+        // });
+    } catch (error) {
+        logger.error('Error cleaning message history:', error);
+        throw new Error('Failed to clean message history');
+    }
+};
+
+// Setup chat chains with improved error handling
+export async function setupChatChain(messageHistories) {
+    try {
+        const promptTemplate = ChatPromptTemplate.fromMessages([
+            ["system", SYSTEM_PROMPT],
+            ["placeholder", "{chat_history}"],
+            ["human", "{input}"]
+        ]);
+
+        const model = new ChatOpenAI({
+            model: "gpt-4o",
+            temperature: 1
+        });
+
+        const mainChain = RunnableSequence.from([
+            promptTemplate,
+            logIntermediateStage,
+            model
+        ]);
+
+        const inputValueTemplate = ChatPromptTemplate.fromMessages([
+            ["human", INPUT_VALUE_PROMPT]
+        ]);
+
+        const inputValueChain = RunnableSequence.from([
+            inputValueTemplate,
+            logIntermediateStage,
+            model
+        ]);
+
+        const withMessageHistory = new RunnableWithMessageHistory({
+            runnable: mainChain,
+            getMessageHistory: async (sessionId) => {
+                if (!messageHistories[sessionId]) {
+                    messageHistories[sessionId] = new InMemoryChatMessageHistory();
+                }
+                const history = messageHistories[sessionId];
+                history.messages = cleanMessageHistory(history.messages);
+                return history;
+            },
+            inputMessagesKey: "input",
+            historyMessagesKey: "chat_history"
+        });
+
+        return {withMessageHistory, inputValueChain};
+    } catch (error) {
+        logger.error('Error setting up chat chain:', error);
+        throw new Error('Failed to setup chat chain');
+    }
 }
 
+// Generate input value with enhanced validation
 export async function generateInputValue(inputValueChain, fieldName, context) {
+    if (!fieldName || !context) {
+        throw new Error('Missing required parameters for input value generation');
+    }
+
     try {
         const result = await inputValueChain.invoke({
-            fieldName: fieldName,
-            context: context,
+            fieldName,
+            context
         });
+
+        if (!result?.content) {
+            throw new Error('Invalid response format from input value chain');
+        }
+
         return result.content;
     } catch (error) {
         logger.error('Error generating input value:', error);
         throw error;
     }
 }
-

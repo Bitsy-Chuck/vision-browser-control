@@ -81,7 +81,7 @@ async function takeScreenshotWithHighlights(page) {
     });
     // const screenshot_min = resizedataURL(screenshot, 800, 600);
     const elementMap = await updateElementMap(page);
-    return {screenshot: `data:image/png;base64,${screenshot}`, elementMap};
+    return {screenshot: `data:image/webp;base64,${screenshot}`, elementMap};
 }
 
 /**
@@ -89,7 +89,7 @@ async function takeScreenshotWithHighlights(page) {
  * @param {import('puppeteer').Page} page - The Puppeteer page object
  * @returns {Promise<Array<{elementId: number, text: string, type: string, bbox: {x: number, y: number, width: number, height: number}}>>}
  */
-async function highlightInteractableElements(page) {
+async function __highlightInteractableElements(page) {
     return await page.evaluate(() => {
         const elements = document.querySelectorAll('a, button, input, textarea, select');
         const elementDetails = [];
@@ -183,6 +183,89 @@ async function highlightInteractableElements(page) {
                     height: bbox.height
                 }
             });
+        });
+
+        return elementDetails;
+    });
+}
+
+async function highlightInteractableElements(page) {
+    return await page.evaluate(() => {
+        // Clean up previous highlights
+        document.querySelectorAll('[data-highlight-label]').forEach(el => el.remove());
+
+        // Get all interactive elements, excluding nested ones
+        const elements = Array.from(document.querySelectorAll('a, button, input, textarea, select'))
+            .filter(el => {
+                // Skip if hidden or non-interactable
+                if (!el.offsetParent || el.disabled || el.style.display === 'none') {
+                    return false;
+                }
+                // Skip if nested within another interactive element
+                return !el.closest('[gpt-element-id]') || el.closest('[gpt-element-id]') === el;
+            });
+
+        const elementDetails = [];
+
+        elements.forEach((el, index) => {
+            try {
+                const elementId = index + 1;
+                el.setAttribute('gpt-element-id', elementId);
+
+                // Highlight the element
+                el.style.outline = '2px solid red';
+                el.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+
+                // Get bounding box safely
+                const bbox = el.getBoundingClientRect();
+                if (!bbox || bbox.width === 0 || bbox.height === 0) {
+                    return; // Skip invalid elements
+                }
+
+                // Create label
+                const label = document.createElement('div');
+                label.setAttribute('data-highlight-label', '');
+                label.textContent = elementId;
+                label.style.position = 'absolute';
+                label.style.top = `${bbox.top + window.scrollY}px`;
+                label.style.left = `${bbox.left + window.scrollX}px`;
+                label.style.backgroundColor = 'red';
+                label.style.color = 'white';
+                label.style.padding = '2px';
+                label.style.fontSize = '12px';
+                label.style.zIndex = '10000';
+                document.body.appendChild(label);
+
+                // Extract text content with improved hierarchy
+                let text = '';
+                const tagName = el.tagName.toLowerCase();
+
+                // Try to get text in order of priority
+                text = el.getAttribute('aria-label') ||
+                    el.getAttribute('title') ||
+                    (tagName === 'input' ? (el.value || el.placeholder) : '') ||
+                    el.textContent.trim() ||
+                    el.getAttribute('name') ||
+                    el.getAttribute('id') ||
+                    `[${tagName.toUpperCase()}]`;
+
+                // Truncate long text
+                text = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+
+                elementDetails.push({
+                    elementId,
+                    text,
+                    type: tagName,
+                    bbox: {
+                        x: bbox.x,
+                        y: bbox.y,
+                        width: bbox.width,
+                        height: bbox.height
+                    }
+                });
+            } catch (error) {
+                console.error(`Error processing element ${index}:`, error);
+            }
         });
 
         return elementDetails;

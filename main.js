@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import {setupChatChain} from './chatChain.js';
+import {setupChatChain} from './chat_chain.js';
 import {loadWebsiteAndTakeScreenshot, processActions} from './browserActions.js';
 import {input, logger} from './utils.js';
 
@@ -76,7 +76,7 @@ async function createElaborateContext(previousActions, mainGoal, userInput, sess
         })),
         "user_input": userInput,
         "session_metadata": sessionMetadata,
-        "environmental_factors": environmentalFactors,
+        // "environmental_factors": environmentalFactors,
     };
 }
 
@@ -169,11 +169,11 @@ let sessionMetadata = {
         sessionMetadata.pages_visited.push(initialUrl);
         sessionMetadata.current_url = initialUrl;
     }
+    let previousActions = []
     while (true) {
-
+        logger.info("Current page at time " + new Date().toISOString() + " is " + sessionMetadata.current_url);
         // const analysis = await analyzeScreenshot(withMessageHistory, config, currentScreenshot, sessionMetadata.current_url, currentElementMap, isFirstAnalysis);
         const environmentalFactors = await determineEnvironmentalFactors(currentPage);
-        let previousActions = []
         const elaborateContext = await createElaborateContext(
             // analysis,
             previousActions,
@@ -190,7 +190,7 @@ let sessionMetadata = {
         },
             {
                 type: "text",
-                text: "This is the screenshot of current screen. "
+                text: `This is the screenshot of ${sessionMetadata.current_url} screen. `
             }
         ]
 
@@ -203,7 +203,7 @@ let sessionMetadata = {
             {
                 input: JSON.stringify(inp),
                 static_history: JSON.stringify(static_history),
-                element_map: JSON.stringify(currentElementMap),
+                // element_map: JSON.stringify(currentElementMap),
                 context: JSON.stringify(elaborateContext)
             },
             config
@@ -229,6 +229,7 @@ let sessionMetadata = {
                     }
                 }
                 const result = await processActions(currentPage, browser, jsonObject.plan.proposed_actions);
+                previousActions = {"actions": jsonObject.plan.proposed_actions, "status": "success"};
                 currentPage = result.page;
                 currentScreenshot = result.screenshot;
                 currentElementMap = result.elementMap;
