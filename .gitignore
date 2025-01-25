@@ -3,3 +3,4 @@
 /.idea
 yarn.lock
 package-lock.json
+static_content.json
