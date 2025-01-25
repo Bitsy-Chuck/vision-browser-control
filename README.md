@@ -1,47 +1,146 @@
+# GPT4V-Browsing
 
+<<<<<<< Updated upstream
 # Vision Brower Control
 
 Vision Scraper is a JavaScript-based tool designed to automate the process of extracting and processing data from web pages. The project leverages various browser automation techniques to interact with web elements and retrieve the necessary content.
+=======
+An AI-powered web automation tool that combines GPT-4 Vision with Puppeteer to create an intelligent browsing system.
+The system can understand web pages visually, interact with elements, and execute complex sequences of actions to
+achieve specified goals.
+>>>>>>> Stashed changes
 
 ## Features
 
-- **Automated Data Extraction**: Interacts with web pages to scrape specific elements.
-- **Customizable Scraping Logic**: Modify the scraping process to target different types of content.
-- **JSON Output**: Extracted data is structured in JSON format for easy consumption.
+- 🔍 **Visual Understanding**: Uses GPT-4 Vision to analyze webpage screenshots
+- 🎯 **Goal-Oriented Navigation**: Executes multi-step actions to achieve user-defined objectives
+- 🤖 **Intelligent Form Filling**: Automatically generates contextually appropriate form inputs
+- 🔄 **Dynamic Content Handling**: Adapts to page changes and state transitions
+- 🎨 **Element Highlighting**: Visually marks interactive elements for precise interaction
 
-## Installation
+## Architecture
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Bitsy-Chuck/vision-scraper.git
-   cd vision-scraper
-   ```
+```mermaid
+flowchart TB
+    subgraph Core["Core Application (main.js)"]
+        MainLoop["Main Loop"]
+        SessionState["Session State"]
+        MetaData["Metadata Manager"]
+    end
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+    subgraph Browser["Browser Module (browserActions.js)"]
+        Puppeteer["Puppeteer Controller"]
+        Screenshot["Screenshot Manager"]
+        Elements["Element Highlighter"]
+        Actions["Action Processor"]
+    end
 
-## Usage
+    subgraph AI["AI Module (chat_chain.js)"]
+        GPT4V["GPT-4 Vision"]
+        LangChain["LangChain Integration"]
+        History["Message History"]
+        InputGen["Input Generator"]
+    end
 
-1. Run the scraper:
-   ```bash
-   npm start
-   ```
+    subgraph Utils["Utilities (utils.js)"]
+        Logger["Winston Logger"]
+        ImageProc["Image Processor"]
+        JSONParser["JSON Parser"]
+        InputHandler["Input Handler"]
+    end
 
-2. Configure your scraping target and criteria in the appropriate files within the `original` directory.
+    MainLoop -->|"Orchestrates"| Browser
+    MainLoop -->|"Makes decisions"| AI
+    MainLoop -->|"Uses"| Utils
+    SessionState -->|"Updates"| MetaData
 
-## File Structure
+    Puppeteer -->|"Controls"| Screenshot
+    Puppeteer -->|"Manages"| Elements
+    Actions -->|"Executes via"| Puppeteer
+    Screenshot -->|"Provides images to"| GPT4V
 
-- `main.js`: Entry point for the scraper.
-- `browserActions.js`: Contains functions to interact with the browser.
-- `elementMap.js`: Maps and identifies HTML elements to be scraped.
-- `utils.js`: Utility functions used across the project.
+    GPT4V -->|"Feeds into"| LangChain
+    LangChain -->|"Maintains"| History
+    LangChain -->|"Uses"| InputGen
 
-## Contributing
+    Logger -->|"Records"| MainLoop
+    ImageProc -->|"Processes"| Screenshot
+    JSONParser -->|"Parses"| LangChain
+    InputHandler -->|"Feeds"| MainLoop
 
-Contributions are welcome! Please submit a pull request or open an issue to discuss potential improvements or bug fixes.
+    classDef module fill:#f9f,stroke:#333,stroke-width:2px
+    classDef core fill:#bbf,stroke:#333,stroke-width:2px
+    class Browser,AI,Utils module
+    class Core core
+```
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create `.env` file:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+3. Run the application:
+
+```bash
+node main.js
+```
+
+## Example Usage
+
+```bash
+$ node main.js
+Enter the initial URL to start browsing: https://example.com
+Enter your main goal: Login to linkedIn and apply to jobs with easy apply available
+```
+
+The system will:
+
+1. Load the specified URL
+2. Analyze the page visually
+3. Plan and execute actions to achieve the goal
+4. Provide progress updates
+
+## Implementation Details
+
+### Visual Analysis
+
+- Screenshots page content
+- Identifies interactive elements
+- Understands page layout and structure
+
+### Action Planning
+
+- Determines optimal action sequences
+- Handles navigation decisions
+- Manages form interactions
+
+### State Management
+
+- Tracks browsing session progress
+- Maintains action history
+- Monitors goal completion
+
+## Requirements
+
+- Node.js 16+
+- OpenAI API key
+- Chrome/Chromium browser
+
+## Limitations
+
+- Requires stable internet connection
+- Performance varies with page complexity
+- May need adjustments for specific websites
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT
