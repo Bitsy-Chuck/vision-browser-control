@@ -1,5 +1,5 @@
 
-# Vision Scraper
+# Vision Brower Control
 
 Vision Scraper is a JavaScript-based tool designed to automate the process of extracting and processing data from web pages. The project leverages various browser automation techniques to interact with web elements and retrieve the necessary content.
 
