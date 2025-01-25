@@ -1,14 +1,8 @@
-# GPT4V-Browsing
-
-<<<<<<< Updated upstream
 # Vision Brower Control
 
-Vision Scraper is a JavaScript-based tool designed to automate the process of extracting and processing data from web pages. The project leverages various browser automation techniques to interact with web elements and retrieve the necessary content.
-=======
 An AI-powered web automation tool that combines GPT-4 Vision with Puppeteer to create an intelligent browsing system.
 The system can understand web pages visually, interact with elements, and execute complex sequences of actions to
 achieve specified goals.
->>>>>>> Stashed changes
 
 ## Features
 
