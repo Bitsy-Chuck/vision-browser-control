@@ -1,4 +1,5 @@
 import {ChatOpenAI} from "@langchain/openai";
+// import {ChatOllama} from "@langchain/ollama";
 import {RunnableSequence, RunnableWithMessageHistory} from "@langchain/core/runnables";
 import {ChatPromptTemplate} from "@langchain/core/prompts";
 import {InMemoryChatMessageHistory} from "@langchain/core/chat_history";
@@ -229,6 +230,14 @@ export async function setupChatChain(messageHistories) {
             model: "gpt-4o",
             temperature: 1
         });
+
+        // const model = new ChatOllama({
+        //     // model: "gpt-4o",
+        //     model: "deepseek-r1",
+        //     // baseURL: 'https://api.deepseek.com',
+        //     // apiKey: "sk-4b063c2e3e7744d086a2706e86af971f",
+        //     temperature: 1
+        // });
 
         const mainChain = RunnableSequence.from([
             promptTemplate,

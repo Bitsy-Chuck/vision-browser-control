@@ -142,7 +142,7 @@ let sessionMetadata = {
     let currentScreenshot;
     let isFirstAnalysis = true;
     let mainGoal = {
-        "overall_objective": "Login to linkedIn and apply to jobs with easy apply available",//await input("Enter your main goal: "),
+        "overall_objective": "Login to linkedIn. Once on the feed page, go to jobs section. Click on the first job and apply",//await input("Enter your main goal: "),
         "success_criteria": [],
         "constraints": [],
         "progress": {
